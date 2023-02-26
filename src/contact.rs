@@ -23,6 +23,10 @@ impl Contact {
             phone_number,
         }
     }
+
+    pub fn get_id(&self) -> usize {
+        self.id
+    }
 }
 
 #[cfg(test)]
@@ -43,5 +47,17 @@ mod tests {
         assert_eq!(c.last_name, "Alonso");
         assert_eq!(c.address, "8 Place de la Concorde, Paris");
         assert_eq!(c.phone_number, "987654321");
+    }
+
+    #[test]
+    fn test_get_id() {
+        let contact = Contact::new(
+            "Lewis".to_string(),
+            "Hamilton".to_string(),
+            "Mercedes-AMG Petronas Formula One Team, Brackley, UK".to_string(),
+            "1234567890".to_string(),
+            0,
+        );
+        assert_eq!(contact.get_id(), 1);
     }
 }

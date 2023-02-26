@@ -1,6 +1,7 @@
 use crate::contact::Contact;
 use std::collections::HashMap;
 
+#[derive(Debug)]
 struct AddressBook {
     last_assigned_id: usize,
     contacts_map: HashMap<usize, Contact>,
@@ -16,6 +17,17 @@ impl AddressBook {
             name_index: HashMap::new(),
             phone_index: HashMap::new(),
         }
+    }
+
+    fn add_contact(&mut self, contact: Contact) {
+        let contact_id = contact.get_id();
+        self.contacts_map.insert(contact_id, contact.clone());
+        self.update_all_indexes(
+            contact.get_full_name(),
+            contact.get_phone_number(),
+            contact_id,
+        );
+        self.update_last_assigned_id(contact_id)
     }
 
     fn update_last_assigned_id(&mut self, last_assigned_id: usize) {
@@ -105,5 +117,34 @@ mod tests {
         assert_eq!(address_book.name_index.get("Daniel Ricciardo"), Some(&1));
         assert_eq!(address_book.phone_index.len(), 1);
         assert_eq!(address_book.phone_index.get("1234567890"), Some(&1));
+    }
+
+    #[test]
+    fn test_add_contact() {
+        let mut address_book = AddressBook::new();
+
+        let contact1 = Contact::new(
+            "Fernando".to_string(),
+            "Alonso".to_string(),
+            "8 Place de la Concorde, Paris".to_string(),
+            "987654321".to_string(),
+            0,
+        );
+        address_book.add_contact(contact1.clone());
+        assert_eq!(address_book.contacts_map.len(), 1);
+        assert_eq!(address_book.name_index.len(), 1);
+        assert_eq!(address_book.phone_index.len(), 1);
+        assert_eq!(
+            address_book.contacts_map.get(&contact1.get_id()),
+            Some(&contact1)
+        );
+        assert_eq!(
+            address_book.name_index.get(&contact1.get_full_name()),
+            Some(&contact1.get_id())
+        );
+        assert_eq!(
+            address_book.phone_index.get(&contact1.get_phone_number()),
+            Some(&contact1.get_id())
+        );
     }
 }

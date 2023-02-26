@@ -26,6 +26,9 @@ impl AddressBook {
         self.name_index.insert(full_name, contact_id);
     }
 
+    fn update_phone_index(&mut self, phone_number: String, contact_id: usize) {
+        self.phone_index.insert(phone_number, contact_id);
+    }
 }
 
 #[cfg(test)]
@@ -61,5 +64,20 @@ mod tests {
         address_book.update_name_index(contact.get_full_name(), contact.get_id());
         assert_eq!(address_book.name_index.len(), 1);
         assert_eq!(address_book.name_index.get("Sebastian Vettel"), Some(&1));
+    }
+
+    #[test]
+    fn test_update_phone_index() {
+        let mut address_book = AddressBook::new();
+        let contact = Contact::new(
+            "Charles".to_string(),
+            "Leclerc".to_string(),
+            "Scuderia Ferrari Mission Winnow, Maranello, Italy".to_string(),
+            "1234567890".to_string(),
+            0,
+        );
+        address_book.update_phone_index(contact.get_phone_number(), contact.get_id());
+        assert_eq!(address_book.phone_index.len(), 1);
+        assert_eq!(address_book.phone_index.get("1234567890"), Some(&1));
     }
 }

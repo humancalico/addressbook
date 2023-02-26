@@ -57,6 +57,13 @@ impl AddressBook {
         }
         None
     }
+
+    fn get_contact_by_phone_number(&self, phone_number: &str) -> Option<&Contact> {
+        if let Some(contact_id) = self.phone_index.get(phone_number) {
+            return self.contacts_map.get(contact_id);
+        }
+        None
+    }
 }
 
 #[cfg(test)]
@@ -230,5 +237,24 @@ mod tests {
 
         let result = address_book.get_contact_by_name("Sebastian Vettel");
         assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_get_contact_by_phone_number() {
+        let mut address_book = AddressBook::new();
+        let contact = Contact::new(
+            "Fernando".to_string(),
+            "Alonso".to_string(),
+            "8 Place de la Concorde, Paris".to_string(),
+            "987654321".to_string(),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact.clone());
+
+        let found_contact = address_book.get_contact_by_phone_number("987654321");
+        assert_eq!(found_contact.unwrap(), &contact);
+
+        let not_found_contact = address_book.get_contact_by_phone_number("123456789");
+        assert!(not_found_contact.is_none());
     }
 }

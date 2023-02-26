@@ -46,6 +46,10 @@ impl AddressBook {
     fn update_phone_index(&mut self, phone_number: String, contact_id: usize) {
         self.phone_index.insert(phone_number, contact_id);
     }
+
+    fn get_contact_by_id(&self, contact_id: usize) -> Option<&Contact> {
+        self.contacts_map.get(&contact_id)
+    }
 }
 
 #[cfg(test)]
@@ -146,5 +150,37 @@ mod tests {
             address_book.phone_index.get(&contact1.get_phone_number()),
             Some(&contact1.get_id())
         );
+    }
+
+    #[test]
+    fn test_get_contact_by_id() {
+        let mut address_book = AddressBook::new();
+        let contact1 = Contact::new(
+            "Lewis".to_string(),
+            "Hamilton".to_string(),
+            "Some address".to_string(),
+            "123456".to_string(),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact1.clone());
+
+        let contact2 = Contact::new(
+            "Max".to_string(),
+            "Verstappen".to_string(),
+            "Some other address".to_string(),
+            "789012".to_string(),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact2.clone());
+
+        assert_eq!(
+            address_book.get_contact_by_id(contact1.get_id()),
+            Some(&contact1)
+        );
+        assert_eq!(
+            address_book.get_contact_by_id(contact2.get_id()),
+            Some(&contact2)
+        );
+        assert_eq!(address_book.get_contact_by_id(999), None);
     }
 }

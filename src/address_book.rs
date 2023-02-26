@@ -50,6 +50,13 @@ impl AddressBook {
     fn get_contact_by_id(&self, contact_id: usize) -> Option<&Contact> {
         self.contacts_map.get(&contact_id)
     }
+
+    fn get_contact_by_name(&self, name: &str) -> Option<&Contact> {
+        if let Some(contact_id) = self.name_index.get(name) {
+            return self.contacts_map.get(contact_id);
+        }
+        None
+    }
 }
 
 #[cfg(test)]
@@ -182,5 +189,46 @@ mod tests {
             Some(&contact2)
         );
         assert_eq!(address_book.get_contact_by_id(999), None);
+    }
+
+    #[test]
+    fn test_get_contact_by_name() {
+        let mut address_book = AddressBook::new();
+        let contact1 = Contact::new(
+            "Lewis".to_string(),
+            "Hamilton".to_string(),
+            "Some address".to_string(),
+            "123456789".to_string(),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact1.clone());
+        let contact2 = Contact::new(
+            "Max".to_string(),
+            "Verstappen".to_string(),
+            "Some address".to_string(),
+            "987654321".to_string(),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact2.clone());
+        let contact3 = Contact::new(
+            "Daniel".to_string(),
+            "Ricciardo".to_string(),
+            "Some address".to_string(),
+            "555555555".to_string(),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact3.clone());
+
+        let result = address_book.get_contact_by_name("Lewis Hamilton");
+        assert_eq!(result, Some(&contact1));
+
+        let result = address_book.get_contact_by_name("Max Verstappen");
+        assert_eq!(result, Some(&contact2));
+
+        let result = address_book.get_contact_by_name("Daniel Ricciardo");
+        assert_eq!(result, Some(&contact3));
+
+        let result = address_book.get_contact_by_name("Sebastian Vettel");
+        assert_eq!(result, None);
     }
 }

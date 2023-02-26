@@ -31,6 +31,10 @@ impl Contact {
     pub fn get_full_name(&self) -> String {
         format!("{} {}", self.first_name, self.last_name)
     }
+
+    pub fn get_phone_number(&self) -> String {
+        return self.phone_number.to_string();
+    }
 }
 
 #[cfg(test)]
@@ -75,5 +79,17 @@ mod tests {
             0,
         );
         assert_eq!(contact.get_full_name(), "Max Verstappen");
+    }
+
+    #[test]
+    fn test_get_phone_number() {
+        let contact = Contact::new(
+            "Valtteri".to_string(),
+            "Bottas".to_string(),
+            "Mercedes-AMG Petronas Formula One Team, Brackley, UK".to_string(),
+            "1234567810".to_string(),
+            0,
+        );
+        assert_eq!(contact.get_phone_number(), "1234567810");
     }
 }

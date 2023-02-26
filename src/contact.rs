@@ -8,7 +8,7 @@ pub struct Contact {
 }
 
 impl Contact {
-    fn new(
+    pub fn new(
         first_name: String,
         last_name: String,
         address: String,

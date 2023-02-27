@@ -35,6 +35,13 @@ impl Contact {
     pub fn get_phone_number(&self) -> String {
         return self.phone_number.to_string();
     }
+
+    pub fn to_tsv_string(&self) -> String {
+        format!(
+            "{}\t{}\t{}\t{}\t{}",
+            self.id, self.first_name, self.last_name, self.address, self.phone_number
+        )
+    }
 }
 
 #[cfg(test)]
@@ -91,5 +98,20 @@ mod tests {
             0,
         );
         assert_eq!(contact.get_phone_number(), "1234567810");
+    }
+
+    #[test]
+    fn test_to_tsv_string() {
+        let contact = Contact::new(
+            "Lewis".to_string(),
+            "Hamilton".to_string(),
+            "7 World Championships St".to_string(),
+            "+44 123 456 7890".to_string(),
+            0,
+        );
+        assert_eq!(
+            contact.to_tsv_string(),
+            "1\tLewis\tHamilton\t7 World Championships St\t+44 123 456 7890"
+        );
     }
 }

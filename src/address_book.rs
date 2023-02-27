@@ -64,6 +64,15 @@ impl AddressBook {
         }
         None
     }
+
+    fn delete_contact_by_id(&mut self, contact_id: usize) -> Option<(usize, Contact)> {
+        if let Some((_, removed_contact)) = self.contacts_map.remove_entry(&contact_id) {
+            self.name_index.remove(&removed_contact.get_full_name());
+            self.phone_index.remove(&removed_contact.get_phone_number());
+            return Some((contact_id, removed_contact));
+        }
+        None
+    }
 }
 
 #[cfg(test)]
@@ -256,5 +265,56 @@ mod tests {
 
         let not_found_contact = address_book.get_contact_by_phone_number("123456789");
         assert!(not_found_contact.is_none());
+    }
+
+    #[test]
+    fn test_delete_contact_by_id() {
+        let mut address_book = AddressBook::new();
+
+        // Add some contacts
+        let contact1 = Contact::new(
+            String::from("Lewis"),
+            String::from("Hamilton"),
+            String::from("123 Main St"),
+            String::from("555-1234"),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact1.clone());
+
+        let contact2 = Contact::new(
+            String::from("Max"),
+            String::from("Verstappen"),
+            String::from("456 Oak St"),
+            String::from("555-5678"),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact2.clone());
+
+        let contact3 = Contact::new(
+            String::from("Sergio"),
+            String::from("Perez"),
+            String::from("789 Maple St"),
+            String::from("555-9101"),
+            address_book.last_assigned_id,
+        );
+        address_book.add_contact(contact3.clone());
+
+        // Test deleting a contact by ID that exists
+        let result = address_book.delete_contact_by_id(contact1.get_id());
+        assert_eq!(result, Some((contact1.get_id(), contact1.clone())));
+        assert_eq!(address_book.get_contact_by_id(contact1.get_id()), None);
+
+        // Test deleting a contact by ID that doesn't exist
+        let result = address_book.delete_contact_by_id(100);
+        assert_eq!(result, None);
+
+        // Test deleting the last remaining contact
+        let result = address_book.delete_contact_by_id(contact3.get_id());
+        assert_eq!(result, Some((contact3.get_id(), contact3.clone())));
+        assert_eq!(address_book.get_contact_by_id(contact3.get_id()), None);
+
+        // Test deleting a contact by ID that was already deleted
+        let result = address_book.delete_contact_by_id(contact1.get_id());
+        assert_eq!(result, None);
     }
 }

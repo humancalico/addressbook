@@ -42,6 +42,32 @@ impl Contact {
             self.id, self.first_name, self.last_name, self.address, self.phone_number
         )
     }
+
+    pub fn from_tsv_string(tsv_string: &str) -> Result<Self, String> {
+        let fields: Vec<&str> = tsv_string.trim().split('\t').collect();
+
+        if fields.len() != 5 {
+            return Err(String::from("Invalid number of fields"));
+        }
+
+        let id = match fields[0].parse::<usize>() {
+            Ok(id) => id,
+            Err(_) => return Err(String::from("Invalid ID")),
+        };
+
+        let first_name = fields[1].to_string();
+        let last_name = fields[2].to_string();
+        let address = fields[3].to_string();
+        let phone_number = fields[4].to_string();
+
+        Ok(Self {
+            id,
+            first_name,
+            last_name,
+            address,
+            phone_number,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -113,5 +139,32 @@ mod tests {
             contact.to_tsv_string(),
             "1\tLewis\tHamilton\t7 World Championships St\t+44 123 456 7890"
         );
+    }
+
+    #[test]
+    fn test_from_tsv_string_success() {
+        let tsv_string = "1\tLewis\tHamilton\tMercedes\t+44 1234 567890\n";
+        let expected = Contact {
+            id: 1,
+            first_name: String::from("Lewis"),
+            last_name: String::from("Hamilton"),
+            address: String::from("Mercedes"),
+            phone_number: String::from("+44 1234 567890"),
+        };
+        assert_eq!(Contact::from_tsv_string(tsv_string), Ok(expected));
+    }
+
+    #[test]
+    fn test_from_tsv_string_invalid_fields() {
+        let tsv_string = "1\tLewis\tHamilton\n";
+        let expected_err = String::from("Invalid number of fields");
+        assert_eq!(Contact::from_tsv_string(tsv_string), Err(expected_err));
+    }
+
+    #[test]
+    fn test_from_tsv_string_invalid_id() {
+        let tsv_string = "abc\tLewis\tHamilton\tMercedes\t+44 1234 567890\n";
+        let expected_err = String::from("Invalid ID");
+        assert_eq!(Contact::from_tsv_string(tsv_string), Err(expected_err));
     }
 }

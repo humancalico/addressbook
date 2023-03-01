@@ -1,7 +1,11 @@
 use crate::contact::Contact;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Write};
+use std::path::Path;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct AddressBook {
     last_assigned_id: usize,
     contacts_map: HashMap<usize, Contact>,
@@ -72,6 +76,18 @@ impl AddressBook {
             return Some((contact_id, removed_contact));
         }
         None
+    }
+
+    pub fn load_from_tsv<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
+        let file = File::open(path)?;
+        let lines = BufReader::new(file).lines();
+        let mut address_book = AddressBook::new();
+        for (_, line) in lines.enumerate() {
+            let line = line?;
+            let contact = Contact::from_tsv_string(&line)?;
+            address_book.add_contact(contact);
+        }
+        Ok(address_book)
     }
 }
 
@@ -316,5 +332,40 @@ mod tests {
         // Test deleting a contact by ID that was already deleted
         let result = address_book.delete_contact_by_id(contact1.get_id());
         assert_eq!(result, None);
+    }
+
+    #[test]
+    fn test_load_from_tsv() {
+        let tsv_data = "1\tLewis\tHamilton\tUK\t44-1234567890\n2\tMax\tVerstappen\tNetherlands\t33-1234567890\n3\tLando\tNorris\tUK\t4-1234567890";
+        let mut file = std::fs::File::create("test_load_from_tsv.tsv").unwrap();
+        file.write_all(tsv_data.as_bytes()).unwrap();
+        let address_book = AddressBook::load_from_tsv("test_load_from_tsv.tsv").unwrap();
+        let expected_address_book = {
+            let mut ab = AddressBook::new();
+            ab.add_contact(Contact::new(
+                "Lewis".into(),
+                "Hamilton".into(),
+                "UK".into(),
+                "44-1234567890".into(),
+                ab.last_assigned_id,
+            ));
+            ab.add_contact(Contact::new(
+                "Max".into(),
+                "Verstappen".into(),
+                "Netherlands".into(),
+                "33-1234567890".into(),
+                ab.last_assigned_id,
+            ));
+            ab.add_contact(Contact::new(
+                "Lando".into(),
+                "Norris".into(),
+                "UK".into(),
+                "4-1234567890".into(),
+                ab.last_assigned_id,
+            ));
+            ab
+        };
+        assert_eq!(address_book, expected_address_book);
+        std::fs::remove_file("test_load_from_tsv.tsv").unwrap();
     }
 }

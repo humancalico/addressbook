@@ -1,3 +1,7 @@
+use std::error::Error;
+use std::fmt;
+use std::fmt::{Display, Formatter};
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Contact {
     id: usize,
@@ -43,16 +47,18 @@ impl Contact {
         )
     }
 
-    pub fn from_tsv_string(tsv_string: &str) -> Result<Self, String> {
+    pub fn from_tsv_string(tsv_string: &str) -> Result<Self, ParseError> {
         let fields: Vec<&str> = tsv_string.trim().split('\t').collect();
 
         if fields.len() != 5 {
-            return Err(String::from("Invalid number of fields"));
+            return Err(ParseError::InvalidData(
+                "Invalid number of fields".to_string(),
+            ));
         }
 
         let id = match fields[0].parse::<usize>() {
             Ok(id) => id,
-            Err(_) => return Err(String::from("Invalid ID")),
+            Err(_) => return Err(ParseError::InvalidId),
         };
 
         let first_name = fields[1].to_string();
@@ -69,6 +75,23 @@ impl Contact {
         })
     }
 }
+
+#[derive(Debug, PartialEq)]
+pub enum ParseError {
+    InvalidData(String),
+    InvalidId,
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            ParseError::InvalidData(msg) => write!(f, "Invalid data: {}", msg),
+            ParseError::InvalidId => write!(f, "Invalid ID"),
+        }
+    }
+}
+
+impl Error for ParseError {}
 
 #[cfg(test)]
 mod tests {
@@ -151,20 +174,36 @@ mod tests {
             address: String::from("Mercedes"),
             phone_number: String::from("+44 1234 567890"),
         };
-        assert_eq!(Contact::from_tsv_string(tsv_string), Ok(expected));
+        assert_eq!(
+            Contact::from_tsv_string(tsv_string).unwrap(),
+            expected,
+            "Unexpected success result"
+        );
     }
 
     #[test]
     fn test_from_tsv_string_invalid_fields() {
         let tsv_string = "1\tLewis\tHamilton\n";
-        let expected_err = String::from("Invalid number of fields");
-        assert_eq!(Contact::from_tsv_string(tsv_string), Err(expected_err));
+        let expected_err = ParseError::InvalidData(String::from("Invalid number of fields"));
+        let contact = Contact::from_tsv_string(tsv_string);
+        assert!(contact.is_err());
+        assert_eq!(
+            contact.unwrap_err(),
+            expected_err,
+            "Unexpected error result"
+        );
     }
 
     #[test]
     fn test_from_tsv_string_invalid_id() {
         let tsv_string = "abc\tLewis\tHamilton\tMercedes\t+44 1234 567890\n";
-        let expected_err = String::from("Invalid ID");
-        assert_eq!(Contact::from_tsv_string(tsv_string), Err(expected_err));
+        let expected_err = ParseError::InvalidId;
+        let contact = Contact::from_tsv_string(tsv_string);
+        assert!(contact.is_err());
+        assert_eq!(
+            contact.unwrap_err(),
+            expected_err,
+            "Unexpected error result"
+        );
     }
 }
